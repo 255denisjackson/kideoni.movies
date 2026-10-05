@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KIDEONI MOVIES — Stream Original Stories</title>
+<meta name="description" content="Watch movies and reels on KIDEONI MOVIES. Free reels, flexible plans, secure streaming." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23F25A24%22/><text x=%2250%25%22 y=%2264%25%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22sans-serif%22>K</text></svg>" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo">KIDE<span class="accent">ONI</span></div>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" class="active">Home</a>
+      <a href="browse.html">Movies</a>
+      <a href="reels.html">Reels</a>
+      <a href="pricing.html">Plans</a>
+    </div>
+    <div class="nav-right">
+      <div id="navAuthSlot" style="display:flex; gap:10px; align-items:center;"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="heroBanner" style="background-image: linear-gradient(0deg, rgba(10,10,11,1), rgba(10,10,11,0.2)), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1600&auto=format&fit=crop');">
+  <div class="wrap">
+    <div class="hero-content">
+      <div class="hero-badge">FEATURED THIS WEEK</div>
+      <h1 id="heroTitle">Original stories, made to be watched.</h1>
+      <p class="lede" id="heroSynopsis">Stream KIDEONI's growing library of movies and reels — from free shorts to full features. New titles every week.</p>
+      <div class="hero-actions">
+        <a href="browse.html" class="btn btn-primary">Browse movies</a>
+        <a href="reels.html" class="btn btn-ghost">Watch free reels</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Free reels</h2>
+      <a href="reels.html">See all →</a>
+    </div>
+    <div class="row-scroll" id="reelsRow">
+      <div class="reel-card skeleton"></div>
+      <div class="reel-card skeleton"></div>
+      <div class="reel-card skeleton"></div>
+      <div class="reel-card skeleton"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Free movies</h2>
+      <a href="browse.html?filter=free">See all →</a>
+    </div>
+    <div class="row-scroll" id="freeMoviesRow">
+      <div class="poster-card skeleton"></div>
+      <div class="poster-card skeleton"></div>
+      <div class="poster-card skeleton"></div>
+      <div class="poster-card skeleton"></div>
+      <div class="poster-card skeleton"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Trending now</h2>
+      <a href="browse.html">See all →</a>
+    </div>
+    <div class="row-scroll" id="trendingRow">
+      <div class="poster-card skeleton"></div>
+      <div class="poster-card skeleton"></div>
+      <div class="poster-card skeleton"></div>
+      <div class="poster-card skeleton"></div>
+      <div class="poster-card skeleton"></div>
+    </div>
+  </section>
+
+  <section class="section panel center">
+    <h2>Unlock the full library</h2>
+    <p class="lede center" style="margin:12px auto 20px;">Plans starting from as little as a coffee a month. Cancel anytime.</p>
+    <a href="pricing.html" class="btn btn-primary">See plans</a>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="logo" style="font-size:20px;">KIDE<span class="accent">ONI</span> MOVIES</div>
+    <div>© <span id="year"></span> KIDEONI MOVIES. All rights reserved.</div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/movies.js"></script>
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+loadHome();
+</script>
+</body>
+</html>

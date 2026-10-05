@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Your account — KIDEONI MOVIES</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">KIDE<span class="accent">ONI</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="browse.html">Movies</a>
+      <a href="reels.html">Reels</a>
+      <a href="pricing.html">Plans</a>
+    </div>
+    <div class="nav-right">
+      <div id="navAuthSlot" style="display:flex; gap:10px; align-items:center;"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap section" style="max-width:720px;">
+  <h1 style="margin-bottom:26px;">Your account</h1>
+
+  <div class="panel" style="margin-bottom:20px;" id="profilePanel">
+    <div class="skeleton" style="height:110px;"></div>
+  </div>
+
+  <div class="panel" style="margin-bottom:20px;">
+    <h3 style="margin-bottom:14px;">Billing history</h3>
+    <div id="billingList"><p class="muted">Loading…</p></div>
+  </div>
+
+  <button class="btn btn-ghost" id="logoutBtn">Sign out</button>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/auth.js"></script>
+<script>
+(async function () {
+  const session = await requireAuth();
+  if (!session) return;
+
+  const { data: profile } = await window.sb.from("profiles").select("*, plans:plan_id(name, price, currency)").eq("id", session.user.id).single();
+
+  const statusLabel = {
+    active: "Active",
+    inactive: "No active plan",
+    expired: "Expired",
+    canceled: "Canceled",
+  }[profile?.subscription_status] || "No active plan";
+
+  document.getElementById("profilePanel").innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+      <div>
+        <h3>${profile?.full_name || session.user.email}</h3>
+        <p class="muted">${session.user.email}</p>
+      </div>
+      <div style="text-align:right;">
+        <div class="tag" style="display:inline-block; margin-bottom:6px;">${statusLabel}</div>
+        <div>${profile?.plans?.name ? `<strong>${profile.plans.name}</strong>` : ""}</div>
+        ${profile?.subscription_expires_at ? `<div class="muted">Renews / expires ${new Date(profile.subscription_expires_at).toLocaleDateString()}</div>` : ""}
+      </div>
+    </div>
+    <a href="pricing.html" class="btn btn-primary btn-sm" style="margin-top:18px;">
+      ${profile?.subscription_status === "active" ? "Change plan" : "Choose a plan"}
+    </a>
+  `;
+
+  const { data: payments } = await window.sb
+    .from("payments")
+    .select("*")
+    .eq("user_id", session.user.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const billingList = document.getElementById("billingList");
+  if (!payments?.length) {
+    billingList.innerHTML = `<p class="muted">No payments yet.</p>`;
+  } else {
+    billingList.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        ${payments
+          .map(
+            (p) => `
+          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--ink-line); padding-bottom:10px;">
+            <span>${new Date(p.created_at).toLocaleDateString()}</span>
+            <span class="tag">${p.status}</span>
+            <strong>${p.amount} ${p.currency}</strong>
+          </div>`
+          )
+          .join("")}
+      </div>`;
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", handleLogout);
+})();
+</script>
+</body>
+</html>

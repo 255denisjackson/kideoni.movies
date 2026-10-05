@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin Dashboard — KIDEONI MOVIES</title>
+<link rel="stylesheet" href="../css/styles.css" />
+<link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="../index.html" class="logo">KIDE<span class="accent">ONI</span></a>
+    <nav class="admin-nav">
+      <a href="index.html" class="active">📊 Dashboard</a>
+      <a href="content.html">🎬 Movies &amp; Reels</a>
+      <a href="analytics.html">📈 Analytics</a>
+      <a href="plans.html">💳 Plans</a>
+      <a href="../index.html">↩ Back to site</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1 style="font-size:30px;">Dashboard</h1>
+      <span class="muted" id="asOf"></span>
+    </div>
+
+    <div class="stat-grid" id="statGrid">
+      <div class="stat-card skeleton" style="height:88px;"></div>
+      <div class="stat-card skeleton" style="height:88px;"></div>
+      <div class="stat-card skeleton" style="height:88px;"></div>
+      <div class="stat-card skeleton" style="height:88px;"></div>
+    </div>
+
+    <div class="chart-wrap">
+      <h3 style="margin-bottom:14px;">Top movies by views</h3>
+      <canvas id="topMoviesChart" height="90"></canvas>
+    </div>
+
+    <div class="chart-wrap">
+      <h3 style="margin-bottom:14px;">Top reels by views</h3>
+      <canvas id="topReelsChart" height="90"></canvas>
+    </div>
+
+    <div class="chart-wrap">
+      <h3 style="margin-bottom:14px;">Recent viewing activity</h3>
+      <table class="data-table" id="recentTable">
+        <thead><tr><th>Type</th><th>Content ID</th><th>Started</th></tr></thead>
+        <tbody><tr><td colspan="3" class="muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/supabaseClient.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+(async function () {
+  const profile = await requireAdmin();
+  if (!profile) return;
+
+  document.getElementById("asOf").textContent = "As of " + new Date().toLocaleString();
+
+  let stats;
+  try {
+    stats = await window.callFunction("admin-stats", {});
+  } catch (e) {
+    document.getElementById("statGrid").innerHTML = `<p class="muted">Couldn't load stats: ${e.message}</p>`;
+    return;
+  }
+
+  document.getElementById("statGrid").innerHTML = `
+    <div class="stat-card"><div class="label">Total users</div><div class="value">${stats.total_users}</div></div>
+    <div class="stat-card"><div class="label">Active subscriptions</div><div class="value">${stats.active_subscriptions}</div></div>
+    <div class="stat-card"><div class="label">Total revenue</div><div class="value">${Math.round(stats.total_revenue).toLocaleString()}</div></div>
+    <div class="stat-card"><div class="label">Revenue (30d)</div><div class="value">${Math.round(stats.revenue_last_30d).toLocaleString()}</div><div class="delta">last 30 days</div></div>
+  `;
+
+  const chartOpts = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: "#8b8b92" }, grid: { color: "#2c2c30" } },
+      y: { ticks: { color: "#8b8b92" }, grid: { color: "#2c2c30" } },
+    },
+  };
+
+  new Chart(document.getElementById("topMoviesChart"), {
+    type: "bar",
+    data: {
+      labels: stats.top_movies.map((m) => m.title),
+      datasets: [{ label: "Views", data: stats.top_movies.map((m) => m.total_views), backgroundColor: "#f25a24" }],
+    },
+    options: chartOpts,
+  });
+
+  new Chart(document.getElementById("topReelsChart"), {
+    type: "bar",
+    data: {
+      labels: stats.top_reels.map((r) => r.title),
+      datasets: [{ label: "Views", data: stats.top_reels.map((r) => r.total_views), backgroundColor: "#ff7440" }],
+    },
+    options: chartOpts,
+  });
+
+  const rows = stats.recent_views
+    .map(
+      (v) => `<tr><td>${v.content_type}</td><td class="muted">${v.content_id.slice(0, 8)}…</td><td>${new Date(v.started_at).toLocaleString()}</td></tr>`
+    )
+    .join("");
+  document.getElementById("recentTable").querySelector("tbody").innerHTML = rows || `<tr><td colspan="3" class="muted">No activity yet.</td></tr>`;
+})();
+</script>
+</body>
+</html>

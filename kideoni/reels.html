@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reels — KIDEONI MOVIES</title>
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  .reels-feed {
+    height: calc(100vh - 74px);
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
+  .reels-feed::-webkit-scrollbar { display: none; }
+  .reel-slide {
+    height: calc(100vh - 74px);
+    scroll-snap-align: start;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .reel-slide video {
+    height: 100%; max-height: calc(100vh - 74px);
+    aspect-ratio: 9/16;
+    object-fit: cover;
+    background: #000;
+    border-radius: 0;
+  }
+  @media (min-width: 640px) { .reel-slide video { border-radius: var(--radius-l); } }
+  .reel-info {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    bottom: 30px; width: min(360px, 92vw);
+    background: linear-gradient(0deg, rgba(0,0,0,0.75), transparent);
+    padding: 40px 16px 14px; border-radius: 0 0 var(--radius-l) var(--radius-l);
+    pointer-events: none;
+  }
+  .reel-info strong { display:block; font-size: 16px; }
+  .reel-info span { font-size: 13px; color: var(--paper-dim); }
+  .reel-tap-hint {
+    position: absolute; inset: 0; display:flex; align-items:center; justify-content:center;
+    color: rgba(255,255,255,0.85); font-size: 40px; pointer-events:none; opacity:0; transition: opacity .2s;
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">KIDE<span class="accent">ONI</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="browse.html">Movies</a>
+      <a href="reels.html" class="active">Reels</a>
+      <a href="pricing.html">Plans</a>
+    </div>
+    <div class="nav-right">
+      <div id="navAuthSlot" style="display:flex; gap:10px; align-items:center;"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="reels-feed" id="reelsFeed">
+  <div class="center" style="padding-top:120px;"><div class="spinner" style="margin:0 auto;"></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/player.js"></script>
+<script src="js/reels.js"></script>
+</body>
+</html>

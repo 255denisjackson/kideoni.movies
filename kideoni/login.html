@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sign in — KIDEONI MOVIES</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="center" style="margin-bottom:26px;">
+      <a href="index.html" class="logo" style="font-size:34px;">KIDE<span class="accent">ONI</span></a>
+    </div>
+    <div class="panel">
+      <h2 style="margin-bottom:6px;">Welcome back</h2>
+      <p class="muted" style="margin-bottom:22px;">Sign in to keep watching.</p>
+
+      <div id="formMsg" class="form-msg"></div>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+      </form>
+    </div>
+    <div class="auth-links">New to KIDEONI? <a href="signup.html">Create an account</a></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth.js"></script>
+<script>
+document.getElementById("loginForm").addEventListener("submit", handleLogin);
+</script>
+</body>
+</html>

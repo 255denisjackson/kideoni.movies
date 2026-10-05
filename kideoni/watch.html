@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Watch — KIDEONI MOVIES</title>
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  .player-shell { max-width: 1000px; margin: 0 auto; padding: 24px 28px 60px; }
+  .player-frame { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: var(--radius-m); overflow: hidden; }
+  .player-frame video { width: 100%; height: 100%; }
+  .player-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: rgba(10,10,11,0.92); text-align:center; padding: 20px; }
+  .meta-row { display: flex; gap: 14px; align-items: center; margin: 18px 0 6px; flex-wrap: wrap; }
+  .tag { background: var(--ink-card); border: 1px solid var(--ink-line); padding: 4px 10px; border-radius: 20px; font-size: 12px; color: var(--paper-dim); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">KIDE<span class="accent">ONI</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="browse.html">Movies</a>
+      <a href="reels.html">Reels</a>
+      <a href="pricing.html">Plans</a>
+    </div>
+    <div class="nav-right">
+      <div id="navAuthSlot" style="display:flex; gap:10px; align-items:center;"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</nav>
+
+<main class="player-shell">
+  <div class="player-frame" id="playerFrame">
+    <video id="videoEl" playsinline></video>
+
+    <!-- Custom controls — no native <video controls>, so there is no
+         browser "..." overflow menu and no built-in download button. -->
+    <div class="kv-player" id="kvPlayer">
+      <button class="kv-center-btn" id="kvCenterBtn" aria-label="Play/Pause">▶</button>
+      <div class="kv-skip-flash left" id="kvFlashLeft"><span class="icon">⟲</span><span>10s</span></div>
+      <div class="kv-skip-flash right" id="kvFlashRight"><span class="icon">⟳</span><span>10s</span></div>
+
+      <div class="kv-controls" id="kvControls">
+        <div class="kv-progress" id="kvProgress">
+          <div class="kv-progress-buffered" id="kvBuffered"></div>
+          <div class="kv-progress-played" id="kvPlayed"></div>
+          <div class="kv-progress-handle" id="kvHandle"></div>
+        </div>
+        <div class="kv-row">
+          <button class="kv-btn" id="kvPlayBtn" aria-label="Play/Pause">▶</button>
+          <button class="kv-btn" id="kvBackBtn" aria-label="Back 10 seconds">⟲10</button>
+          <button class="kv-btn" id="kvFwdBtn" aria-label="Forward 10 seconds">10⟳</button>
+          <span class="kv-time" id="kvTime">0:00 / 0:00</span>
+          <div class="kv-spacer"></div>
+          <button class="kv-btn" id="kvMuteBtn" aria-label="Mute">🔊</button>
+          <input type="range" class="kv-volume-slider" id="kvVolume" min="0" max="1" step="0.05" value="1" />
+          <button class="kv-btn" id="kvFullscreenBtn" aria-label="Fullscreen">⛶</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="player-overlay" id="playerOverlay" style="display:none;">
+      <div class="spinner" id="overlaySpinner"></div>
+      <div id="overlayMsg" class="muted">Preparing your video…</div>
+      <div id="overlayActions"></div>
+    </div>
+  </div>
+
+  <h1 id="movieTitle" style="margin-top:22px; font-size:36px;">Loading…</h1>
+  <div class="meta-row" id="movieMeta"></div>
+  <p id="movieSynopsis" class="lede"></p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/player.js"></script>
+<script src="js/custom-player.js"></script>
+<script>
+(async function () {
+  const params = new URLSearchParams(location.search);
+  const type = params.get("type") === "reel" ? "reel" : "movie";
+  const id = params.get("id");
+  const overlay = document.getElementById("playerOverlay");
+  const overlayMsg = document.getElementById("overlayMsg");
+  const overlayActions = document.getElementById("overlayActions");
+  const video = document.getElementById("videoEl");
+
+  if (!id) {
+    document.getElementById("movieTitle").textContent = "Title not found";
+    return;
+  }
+
+  const table = type === "movie" ? "movies" : "reels";
+  const publicCols = type === "movie"
+    ? "id, title, slug, synopsis, poster_url, backdrop_url, duration_seconds, release_year, genres, cast_list, rating, is_free, is_published"
+    : "id, title, caption, thumbnail_url, duration_seconds, is_published";
+  const { data: content } = await window.sb.from(table).select(publicCols).eq("id", id).eq("is_published", true).single();
+
+  if (!content) {
+    document.getElementById("movieTitle").textContent = "This title isn't available.";
+    return;
+  }
+
+  document.getElementById("movieTitle").textContent = content.title;
+  document.getElementById("movieSynopsis").textContent = content.synopsis || content.caption || "";
+  document.title = `${content.title} — KIDEONI MOVIES`;
+
+  const metaRow = document.getElementById("movieMeta");
+  const bits = [];
+  if (content.release_year) bits.push(content.release_year);
+  if (content.rating) bits.push(content.rating);
+  (content.genres || []).forEach((g) => bits.push(g));
+  if (content.is_free) bits.push("Free");
+  metaRow.innerHTML = bits.map((b) => `<span class="tag">${b}</span>`).join("");
+
+  overlay.style.display = "flex";
+
+  await loadProtectedVideo(video, type, id, (err) => {
+    overlay.style.display = "flex";
+    document.getElementById("overlaySpinner").style.display = "none";
+
+    const needsAuth = /sign in/i.test(err.message);
+    const needsSub = /subscription/i.test(err.message);
+
+    overlayMsg.textContent = err.message || "This video couldn't be loaded.";
+    overlayActions.innerHTML = needsAuth
+      ? `<a href="login.html?redirect=watch.html?type=${type}%26id=${id}" class="btn btn-primary">Sign in to continue</a>`
+      : needsSub
+      ? `<a href="pricing.html" class="btn btn-primary">See plans</a>`
+      : `<button class="btn btn-ghost" onclick="location.reload()">Try again</button>`;
+  });
+
+  video.addEventListener("loadeddata", () => {
+    overlay.style.display = "none";
+  });
+
+  initCustomPlayer(video, document.getElementById("kvPlayer"));
+})();
+</script>
+</body>
+</html>

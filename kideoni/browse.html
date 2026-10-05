@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Browse Movies — KIDEONI MOVIES</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo">KIDE<span class="accent">ONI</span></div>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="browse.html" class="active">Movies</a>
+      <a href="reels.html">Reels</a>
+      <a href="pricing.html">Plans</a>
+    </div>
+    <div class="nav-right">
+      <div id="navAuthSlot" style="display:flex; gap:10px; align-items:center;"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</nav>
+
+<header class="browse-hero">
+  <div class="wrap">
+    <h1>Movies</h1>
+    <p class="lede">Search the full library, filter by genre, or jump straight to what's free.</p>
+  </div>
+</header>
+
+<main class="wrap section" style="padding-top:0;">
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <input id="searchInput" type="text" placeholder="Search by title…" />
+    </div>
+    <select id="genreFilter">
+      <option value="">All genres</option>
+      <option value="Drama">Drama</option>
+      <option value="Comedy">Comedy</option>
+      <option value="Action">Action</option>
+      <option value="Romance">Romance</option>
+      <option value="Thriller">Thriller</option>
+      <option value="Documentary">Documentary</option>
+    </select>
+    <select id="sortSelect">
+      <option value="newest">Newest first</option>
+      <option value="popular">Most viewed</option>
+      <option value="az">Title A–Z</option>
+    </select>
+    <label class="filter-pill" id="freeOnlyPill">
+      <input type="checkbox" id="freeOnlyToggle" /> Free only
+    </label>
+  </div>
+
+  <div class="grid" id="browseGrid">
+    <div class="poster-card skeleton"></div>
+    <div class="poster-card skeleton"></div>
+    <div class="poster-card skeleton"></div>
+    <div class="poster-card skeleton"></div>
+    <div class="poster-card skeleton"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="logo" style="font-size:20px;">KIDE<span class="accent">ONI</span> MOVIES</div>
+    <div>© <span id="year"></span> KIDEONI MOVIES. All rights reserved.</div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/movies.js"></script>
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+loadBrowse();
+</script>
+</body>
+</html>

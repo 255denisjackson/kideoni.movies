@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Analytics — KIDEONI Admin</title>
+<link rel="stylesheet" href="../css/styles.css" />
+<link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="../index.html" class="logo">KIDE<span class="accent">ONI</span></a>
+    <nav class="admin-nav">
+      <a href="index.html">📊 Dashboard</a>
+      <a href="content.html">🎬 Movies &amp; Reels</a>
+      <a href="analytics.html" class="active">📈 Analytics</a>
+      <a href="plans.html">💳 Plans</a>
+      <a href="../index.html">↩ Back to site</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1 style="font-size:30px;">Analytics</h1>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+      <button class="btn btn-ghost btn-sm tab-btn active" data-tab="movies">Movies</button>
+      <button class="btn btn-ghost btn-sm tab-btn" data-tab="reels">Reels</button>
+    </div>
+
+    <div id="moviesAnalyticsTab">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Title</th><th>Total views</th><th>Unique viewers</th>
+            <th>Avg. % watched</th><th>Completions</th><th>Views (7d)</th><th>Views (30d)</th>
+          </tr>
+        </thead>
+        <tbody id="movieAnalyticsBody"><tr><td colspan="7" class="muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+
+    <div id="reelsAnalyticsTab" style="display:none;">
+      <table class="data-table">
+        <thead>
+          <tr><th>Title</th><th>Total views</th><th>Unique viewers</th><th>Avg. % watched</th><th>Completions</th><th>Views (7d)</th></tr>
+        </thead>
+        <tbody id="reelAnalyticsBody"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/supabaseClient.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+(async function () {
+  const profile = await requireAdmin();
+  if (!profile) return;
+
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("moviesAnalyticsTab").style.display = btn.dataset.tab === "movies" ? "block" : "none";
+      document.getElementById("reelsAnalyticsTab").style.display = btn.dataset.tab === "reels" ? "block" : "none";
+    });
+  });
+
+  const { data: movieStats } = await window.sb.from("v_movie_analytics").select("*").order("total_views", { ascending: false });
+  const { data: reelStats } = await window.sb.from("v_reel_analytics").select("*").order("total_views", { ascending: false });
+
+  document.getElementById("movieAnalyticsBody").innerHTML =
+    (movieStats || [])
+      .map(
+        (m) => `<tr>
+        <td>${m.title}</td><td>${m.total_views}</td><td>${m.unique_viewers}</td>
+        <td>${Number(m.avg_percent_complete).toFixed(1)}%</td><td>${m.completions}</td>
+        <td>${m.views_last_7d}</td><td>${m.views_last_30d}</td>
+      </tr>`
+      )
+      .join("") || `<tr><td colspan="7" class="muted">No view data yet.</td></tr>`;
+
+  document.getElementById("reelAnalyticsBody").innerHTML =
+    (reelStats || [])
+      .map(
+        (r) => `<tr>
+        <td>${r.title}</td><td>${r.total_views}</td><td>${r.unique_viewers}</td>
+        <td>${Number(r.avg_percent_complete).toFixed(1)}%</td><td>${r.completions}</td><td>${r.views_last_7d}</td>
+      </tr>`
+      )
+      .join("") || `<tr><td colspan="6" class="muted">No view data yet.</td></tr>`;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Verify your email — KIDEONI MOVIES</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="center" style="margin-bottom:26px;">
+      <a href="index.html" class="logo" style="font-size:34px;">KIDE<span class="accent">ONI</span></a>
+    </div>
+
+    <div class="panel center">
+      <div class="verify-stage">
+        <div class="verify-ring"></div>
+        <div class="verify-ring"></div>
+        <div class="verify-ring"></div>
+        <div class="verify-mail" id="verifyMailIcon">✉️</div>
+      </div>
+
+      <h2 style="margin-bottom:8px;">Check your inbox</h2>
+      <p class="muted" style="margin-bottom:4px;">
+        We sent a verification link to<br/>
+        <strong id="verifyEmailLabel" style="color:var(--paper);"></strong>
+      </p>
+      <p class="verify-status" id="verifyStatus">
+        Waiting for confirmation<span class="verify-dots"><span>.</span><span>.</span><span>.</span></span>
+      </p>
+
+      <div class="stack gap-12 mt-24">
+        <button id="continueBtn" class="btn btn-primary btn-block" style="display:none;">Continue to KIDEONI</button>
+        <button id="resendBtn" class="btn btn-ghost btn-block">Resend email</button>
+      </div>
+    </div>
+
+    <div class="auth-links">Wrong email? <a href="signup.html">Start over</a></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth.js"></script>
+<script>
+initVerifyScreen();
+</script>
+</body>
+</html>

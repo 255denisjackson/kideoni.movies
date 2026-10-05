@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Plans — KIDEONI Admin</title>
+<link rel="stylesheet" href="../css/styles.css" />
+<link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a href="../index.html" class="logo">KIDE<span class="accent">ONI</span></a>
+    <nav class="admin-nav">
+      <a href="index.html">📊 Dashboard</a>
+      <a href="content.html">🎬 Movies &amp; Reels</a>
+      <a href="analytics.html">📈 Analytics</a>
+      <a href="plans.html" class="active">💳 Plans</a>
+      <a href="../index.html">↩ Back to site</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="toolbar">
+      <h1 style="font-size:30px;">Subscription plans</h1>
+      <button class="btn btn-primary btn-sm" id="newPlanBtn">+ Add plan</button>
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Price</th><th>Duration</th><th>Status</th><th></th></tr></thead>
+      <tbody id="plansBody"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
+    </table>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="planModal">
+  <div class="panel modal-box">
+    <h3 id="planModalTitle" style="margin-bottom:18px;">Add plan</h3>
+    <div id="planMsg" class="form-msg"></div>
+    <form id="planForm">
+      <input type="hidden" name="id" />
+      <div class="field"><label>Name</label><input name="name" required /></div>
+      <div class="field"><label>Slug</label><input name="slug" required /></div>
+      <div class="field"><label>Description</label><input name="description" /></div>
+      <div style="display:flex; gap:12px;">
+        <div class="field" style="flex:1;"><label>Price</label><input name="price" type="number" step="0.01" required /></div>
+        <div class="field" style="flex:1;"><label>Currency</label><input name="currency" value="TZS" required /></div>
+        <div class="field" style="flex:1;"><label>Duration (days)</label><input name="duration_days" type="number" value="30" required /></div>
+      </div>
+      <div class="field"><label>Features (one per line)</label><textarea name="features" rows="4" placeholder="Full movie library&#10;HD quality&#10;No ads"></textarea></div>
+      <label style="display:flex; align-items:center; gap:8px; font-size:14px; margin-bottom:20px;"><input type="checkbox" name="is_active" checked /> Active</label>
+      <div style="display:flex; gap:10px;">
+        <button type="submit" class="btn btn-primary">Save plan</button>
+        <button type="button" class="btn btn-ghost" id="cancelPlanBtn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/supabaseClient.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+let allPlans = [];
+
+(async function () {
+  const profile = await requireAdmin();
+  if (!profile) return;
+  await loadPlans();
+
+  document.getElementById("newPlanBtn").addEventListener("click", () => openPlanModal());
+  document.getElementById("cancelPlanBtn").addEventListener("click", () => document.getElementById("planModal").classList.remove("open"));
+  document.getElementById("planForm").addEventListener("submit", savePlan);
+})();
+
+async function loadPlans() {
+  const { data } = await window.sb.from("plans").select("*").order("sort_order");
+  allPlans = data || [];
+  document.getElementById("plansBody").innerHTML =
+    allPlans
+      .map(
+        (p) => `<tr>
+      <td>${p.name}</td>
+      <td>${Number(p.price) === 0 ? "Free" : `${p.price} ${p.currency}`}</td>
+      <td>${p.duration_days} days</td>
+      <td><span class="chip ${p.is_active ? "published" : "draft"}">${p.is_active ? "Active" : "Inactive"}</span></td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openPlanModal('${p.id}')">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="deletePlan('${p.id}')">Delete</button>
+      </td>
+    </tr>`
+      )
+      .join("") || `<tr><td colspan="5" class="muted">No plans yet.</td></tr>`;
+}
+
+function openPlanModal(id) {
+  const form = document.getElementById("planForm");
+  form.reset();
+  document.getElementById("planMsg").className = "form-msg";
+  const plan = allPlans.find((p) => p.id === id);
+  document.getElementById("planModalTitle").textContent = plan ? "Edit plan" : "Add plan";
+  form.id.value = plan?.id || "";
+  if (plan) {
+    form.name.value = plan.name;
+    form.slug.value = plan.slug;
+    form.description.value = plan.description || "";
+    form.price.value = plan.price;
+    form.currency.value = plan.currency;
+    form.duration_days.value = plan.duration_days;
+    form.features.value = (plan.features || []).join("\n");
+    form.is_active.checked = !!plan.is_active;
+  }
+  document.getElementById("planModal").classList.add("open");
+}
+
+async function savePlan(e) {
+  e.preventDefault();
+  const form = e.target;
+  const msg = document.getElementById("planMsg");
+  const btn = form.querySelector("button[type=submit]");
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+
+  try {
+    const id = form.id.value || null;
+    const payload = {
+      name: form.name.value.trim(),
+      slug: form.slug.value.trim(),
+      description: form.description.value.trim(),
+      price: Number(form.price.value),
+      currency: form.currency.value.trim().toUpperCase(),
+      duration_days: Number(form.duration_days.value),
+      features: form.features.value.split("\n").map((f) => f.trim()).filter(Boolean),
+      is_active: form.is_active.checked,
+    };
+    const { error } = id
+      ? await window.sb.from("plans").update(payload).eq("id", id)
+      : await window.sb.from("plans").insert(payload);
+    if (error) throw error;
+
+    document.getElementById("planModal").classList.remove("open");
+    await loadPlans();
+  } catch (err) {
+    msg.textContent = err.message || "Could not save plan.";
+    msg.className = "form-msg show error";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save plan";
+  }
+}
+
+async function deletePlan(id) {
+  if (!confirm("Delete this plan?")) return;
+  await window.sb.from("plans").delete().eq("id", id);
+  await loadPlans();
+}
+</script>
+</body>
+</html>
